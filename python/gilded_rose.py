@@ -1,4 +1,8 @@
-# -*- coding: utf-8 -*-
+from typing import Final
+
+AGED_BRIE: Final[str] = "Aged Brie"
+BACKSTAGE: Final[str] = "Backstage passes to a TAFKAL80ETC concert"
+SULFURAS: Final[str] = "Sulfuras, Hand of Ragnaros"
 
 
 class GildedRose(object):
@@ -7,36 +11,59 @@ class GildedRose(object):
 
     def update_quality(self):
         for item in self.items:
-            if (
-                item.name != "Aged Brie"
-                and item.name != "Backstage passes to a TAFKAL80ETC concert"
-            ):
-                if item.quality > 0:
-                    if item.name != "Sulfuras, Hand of Ragnaros":
-                        item.quality = item.quality - 1
+            if item.name == AGED_BRIE:
+                self._update_aged_brie(item)
+            elif item.name == BACKSTAGE:
+                self._update_backstage(item)
+            elif item.name == SULFURAS:
+                self._update_sulfuras(item)
             else:
-                if item.quality < 50:
-                    item.quality = item.quality + 1
-                    if item.name == "Backstage passes to a TAFKAL80ETC concert":
-                        if item.sell_in < 11:
-                            if item.quality < 50:
-                                item.quality = item.quality + 1
-                        if item.sell_in < 6:
-                            if item.quality < 50:
-                                item.quality = item.quality + 1
-            if item.name != "Sulfuras, Hand of Ragnaros":
-                item.sell_in = item.sell_in - 1
-            if item.sell_in < 0:
-                if item.name != "Aged Brie":
-                    if item.name != "Backstage passes to a TAFKAL80ETC concert":
-                        if item.quality > 0:
-                            if item.name != "Sulfuras, Hand of Ragnaros":
-                                item.quality = item.quality - 1
-                    else:
-                        item.quality = item.quality - item.quality
-                else:
-                    if item.quality < 50:
-                        item.quality = item.quality + 1
+                self._update_default(item)
+
+    @staticmethod
+    def _update_default(item) -> None:
+        new_sell_in = item.sell_in - 1
+        if new_sell_in >= 0:
+            new_quality = item.quality - 1
+        else:
+            new_quality = item.quality - 2
+
+        item.sell_in = new_sell_in
+        item.quality = new_quality if new_quality >= 0 else 0
+
+    @staticmethod
+    def _update_aged_brie(item):
+        assert item.name == AGED_BRIE
+
+        new_sell_in = item.sell_in - 1
+        if new_sell_in >= 0:
+            new_quality = item.quality + 1
+        else:
+            new_quality = item.quality + 2
+
+        item.sell_in = new_sell_in
+        item.quality = new_quality if new_quality <= 50 else 50
+
+    @staticmethod
+    def _update_backstage(item):
+        assert item.name == BACKSTAGE
+
+        new_sell_in = item.sell_in - 1
+        if new_sell_in < 0:
+            new_quality = 0
+        elif new_sell_in < 5:
+            new_quality = item.quality + 3
+        elif new_sell_in < 10:
+            new_quality = item.quality + 2
+        else:
+            new_quality = item.quality + 1
+
+        item.sell_in = new_sell_in
+        item.quality = new_quality if new_quality <= 50 else 50
+
+    @staticmethod
+    def _update_sulfuras(item):
+        assert item.name == SULFURAS
 
 
 class Item:
